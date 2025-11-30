@@ -1,6 +1,6 @@
 # YouTube Downloader
 
-A simple and powerful YouTube video/audio downloader built with Python and yt-dlp.
+A simple and powerful YouTube video/audio downloader with both CLI and GUI interfaces, built with Python and yt-dlp.
 
 ## Features
 
@@ -10,6 +10,22 @@ A simple and powerful YouTube video/audio downloader built with Python and yt-dl
 - 🎯 Interactive quality selection
 - 🔍 View available formats before downloading
 - ⚡ Works without ffmpeg (uses pre-merged formats)
+- 🖥️ **Desktop GUI Application** - Easy to use graphical interface
+- 💻 **CLI Version** - Command-line interface for advanced users
+- 📦 **Standalone Executable** - Run without Python installed
+
+## Two Versions Available
+
+### 1. GUI Application (Recommended for most users)
+- User-friendly graphical interface
+- Real-time download progress
+- Can be built as standalone .exe
+- Run: `python gui_app.py`
+
+### 2. CLI Application (For advanced users)
+- Command-line interface
+- Interactive menu system
+- Run: `python main.py`
 
 ## Requirements
 
@@ -33,15 +49,38 @@ source .venv/bin/activate  # On Linux/Mac
 
 3. Install required packages:
 ```bash
-pip install yt-dlp
+pip install -r requirements.txt
 ```
 
-## Usage
+## Quick Start
 
-Run the script:
+### Run GUI Application (Easiest)
+```bash
+python gui_app.py
+```
+
+### Run CLI Application
 ```bash
 python main.py
 ```
+
+## Building Standalone Executable
+
+To create an .exe file that runs without Python:
+
+1. Install PyInstaller:
+```bash
+pip install pyinstaller
+```
+
+2. Build the executable:
+```bash
+pyinstaller --onefile --windowed --name="YouTubeDownloader" gui_app.py
+```
+
+3. Find your executable in the `dist` folder
+
+**For detailed build instructions, see [BUILD_GUIDE.md](BUILD_GUIDE.md)**
 
 ### Menu Options
 
