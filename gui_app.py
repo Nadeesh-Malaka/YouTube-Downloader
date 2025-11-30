@@ -10,7 +10,7 @@ import re
 class YouTubeDownloaderGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("YouTube Downloader")
+        self.root.title("NM YouTube Downloader")
         self.root.geometry("600x550")
         self.root.resizable(True, True)
         self.root.minsize(550, 500)
@@ -36,6 +36,7 @@ class YouTubeDownloaderGUI:
         
         # Download state
         self.is_downloading = False
+        self.cancel_download = False
         self.current_download = None
         
         self.setup_ui()
@@ -293,9 +294,13 @@ class YouTubeDownloaderGUI:
         browse_btn.bind("<Enter>", lambda e: browse_btn.config(bg="#00e676"))
         browse_btn.bind("<Leave>", lambda e: browse_btn.config(bg=self.colors['success']))
         
-        # Very Compact Download Button
+        # Button container for download and cancel buttons
+        button_frame = tk.Frame(main_container, bg=self.colors['bg'])
+        button_frame.pack(pady=8, fill="x")
+        
+        # Download Button
         self.download_btn = tk.Button(
-            main_container,
+            button_frame,
             text="⬇ START",
             command=self.start_download,
             bg=self.colors['button'],
@@ -306,9 +311,26 @@ class YouTubeDownloaderGUI:
             cursor="hand2",
             pady=8
         )
-        self.download_btn.pack(pady=8, fill="x")
+        self.download_btn.pack(side="left", fill="x", expand=True, padx=(0, 4))
         self.download_btn.bind("<Enter>", lambda e: self.download_btn.config(bg=self.colors['button_hover']) if not self.is_downloading else None)
         self.download_btn.bind("<Leave>", lambda e: self.download_btn.config(bg=self.colors['button']) if not self.is_downloading else None)
+        
+        # Cancel Button (hidden by default)
+        self.cancel_btn = tk.Button(
+            button_frame,
+            text="✖ CANCEL",
+            command=self.cancel_download_action,
+            bg="#ff6600",
+            fg="white",
+            font=("Segoe UI", 11, "bold"),
+            relief="flat",
+            borderwidth=0,
+            cursor="hand2",
+            pady=8
+        )
+        # Don't pack cancel button initially - show it during download
+        self.cancel_btn.bind("<Enter>", lambda e: self.cancel_btn.config(bg="#cc5200"))
+        self.cancel_btn.bind("<Leave>", lambda e: self.cancel_btn.config(bg="#ff6600"))
         
         # Compact Progress Section
         progress_frame = tk.LabelFrame(
@@ -390,6 +412,13 @@ class YouTubeDownloaderGUI:
             self.download_path = folder
             self.path_entry.delete(0, tk.END)
             self.path_entry.insert(0, folder)
+    
+    def cancel_download_action(self):
+        """Cancel the current download"""
+        if self.is_downloading:
+            self.cancel_download = True
+            self.log_message("\n⚠️ Cancelling download...")
+            self.update_status("Cancelling...", "#ff6600")
             
     def log_message(self, message):
         """Add message to progress text widget - thread-safe"""
@@ -412,6 +441,10 @@ class YouTubeDownloaderGUI:
         
     def progress_hook(self, d):
         """Hook for yt-dlp progress updates"""
+        # Check for cancellation
+        if self.cancel_download:
+            raise Exception("Download cancelled by user")
+            
         if d['status'] == 'downloading':
             # Extract progress information
             try:
@@ -596,31 +629,49 @@ class YouTubeDownloaderGUI:
             messagebox.showinfo("Success", "Download completed successfully!")
             
         except Exception as e:
-            error_msg = f"Error: {str(e)}"
-            self.log_message("\n" + "="*60)
-            self.log_message(f"❌ ERROR: {str(e)}")
-            self.log_message("="*60)
-            self.update_status("✗ Download failed", "#ff4444")
-            self.progress_bar['value'] = 0
-            messagebox.showerror("Error", error_msg)
+            error_msg = str(e)
+            if "cancelled by user" in error_msg.lower():
+                # Handle cancellation
+                self.log_message("\n" + "="*60)
+                self.log_message("⚠️ Download cancelled by user")
+                self.log_message("="*60)
+                self.update_status("✗ Download cancelled", "#ff6600")
+                self.progress_bar['value'] = 0
+            else:
+                # Handle other errors
+                self.log_message("\n" + "="*60)
+                self.log_message(f"❌ ERROR: {error_msg}")
+                self.log_message("="*60)
+                self.update_status("✗ Download failed", "#ff4444")
+                self.progress_bar['value'] = 0
+                messagebox.showerror("Error", f"Error: {error_msg}")
         finally:
             self.is_downloading = False
+            self.cancel_download = False
             self.download_btn.config(
                 state="normal",
                 text="⬇ START",
                 bg=self.colors['button']
             )
+            # Hide cancel button
+            self.cancel_btn.pack_forget()
     
     def start_download(self):
         if self.is_downloading:
             return
             
         self.is_downloading = True
+        self.cancel_download = False
+        
         self.download_btn.config(
             state="disabled",
             text="⏳ LOADING...",
             bg="#555555"
         )
+        
+        # Show cancel button
+        self.cancel_btn.pack(side="left", fill="x", expand=True, padx=(4, 0))
+        
         thread = threading.Thread(target=self.download_thread, daemon=True)
         thread.start()
 
