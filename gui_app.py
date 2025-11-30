@@ -10,7 +10,7 @@ import re
 class YouTubeDownloaderGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("NM YouTube Downloader")
+        self.root.title("NM Tube")
         self.root.geometry("600x550")
         self.root.resizable(True, True)
         self.root.minsize(550, 500)
@@ -103,7 +103,7 @@ class YouTubeDownloaderGUI:
         
         title_label = tk.Label(
             title_frame, 
-            text="▶ YouTube Downloader", 
+            text="▶ NM Tube", 
             font=("Segoe UI", 16, "bold"),
             fg=self.colors['accent'],
             bg=self.colors['bg']
